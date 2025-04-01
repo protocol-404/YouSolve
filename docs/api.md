@@ -1,24 +1,34 @@
-# API Documentation for YouCode Evaluator
+# API Documentation - YouCode Evaluator
 
 This document provides detailed information about the API endpoints available in the YouCode Evaluator platform.
 
 ## Base URL
 
-All API endpoints are relative to the base URL of your deployment:
+All API endpoints are relative to the base URL:
 
 ```
-https://youcode-evaluator-api.example.com/api
+https://api.youcode-evaluator.com/api
 ```
 
 ## Authentication
 
-The API uses token-based authentication with Laravel Sanctum. To access protected endpoints, you need to include the authentication token in the request header:
+Most API endpoints require authentication using a Bearer token. To authenticate, include the token in the Authorization header:
 
 ```
 Authorization: Bearer {your_token}
 ```
 
-### Authentication Endpoints
+### Getting a Token
+
+To get an authentication token, use the login endpoint:
+
+```
+POST /login
+```
+
+## API Endpoints
+
+### Authentication
 
 #### Register a new user
 
@@ -29,11 +39,10 @@ POST /register
 **Request Body:**
 ```json
 {
-  "name": "User Name",
-  "email": "user@example.com",
+  "name": "John Doe",
+  "email": "john@example.com",
   "password": "password123",
-  "password_confirmation": "password123",
-  "role_id": 1
+  "password_confirmation": "password123"
 }
 ```
 
@@ -43,8 +52,8 @@ POST /register
   "message": "User registered successfully",
   "user": {
     "id": 1,
-    "name": "User Name",
-    "email": "user@example.com",
+    "name": "John Doe",
+    "email": "john@example.com",
     "role_id": 1
   },
   "token": "your_auth_token"
@@ -60,7 +69,7 @@ POST /login
 **Request Body:**
 ```json
 {
-  "email": "user@example.com",
+  "email": "john@example.com",
   "password": "password123"
 }
 ```
@@ -71,8 +80,8 @@ POST /login
   "message": "Login successful",
   "user": {
     "id": 1,
-    "name": "User Name",
-    "email": "user@example.com",
+    "name": "John Doe",
+    "email": "john@example.com",
     "role_id": 1
   },
   "token": "your_auth_token"
@@ -85,15 +94,10 @@ POST /login
 POST /logout
 ```
 
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
 **Response:**
 ```json
 {
-  "message": "Successfully logged out"
+  "message": "Logged out successfully"
 }
 ```
 
@@ -106,7 +110,7 @@ POST /forgot-password
 **Request Body:**
 ```json
 {
-  "email": "user@example.com"
+  "email": "john@example.com"
 }
 ```
 
@@ -126,8 +130,8 @@ POST /reset-password
 **Request Body:**
 ```json
 {
-  "token": "reset_token_from_email",
-  "email": "user@example.com",
+  "email": "john@example.com",
+  "token": "reset_token",
   "password": "new_password",
   "password_confirmation": "new_password"
 }
@@ -136,126 +140,38 @@ POST /reset-password
 **Response:**
 ```json
 {
-  "message": "Password has been reset"
+  "message": "Password reset successfully"
 }
 ```
 
-## Authorization and Permissions
-
-### Get Current User
+#### Get Current User
 
 ```
 GET /user
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
 ```
 
 **Response:**
 ```json
 {
   "id": 1,
-  "name": "User Name",
-  "email": "user@example.com",
+  "name": "John Doe",
+  "email": "john@example.com",
   "role_id": 1
 }
 ```
 
-### Get Available Roles
+### User Management
 
-```
-GET /roles
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
-**Response:**
-```json
-{
-  "roles": [
-    {
-      "id": 1,
-      "name": "candidate",
-      "description": "Applicant to YouCode training"
-    },
-    {
-      "id": 2,
-      "name": "instructor",
-      "description": "Teaching staff for evaluation"
-    },
-    {
-      "id": 3,
-      "name": "administrator",
-      "description": "Platform management personnel"
-    }
-  ]
-}
-```
-
-### Check User Role
-
-```
-GET /check-role/{role}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
-**Response:**
-```json
-{
-  "has_role": true
-}
-```
-
-### Get User Permissions
-
-```
-GET /permissions
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
-**Response:**
-```json
-{
-  "role": "administrator",
-  "permissions": {
-    "users": ["view", "create", "edit", "delete"],
-    "roles": ["view", "create", "edit", "delete"],
-    "evaluations": ["view", "create", "edit", "delete"],
-    "problems": ["view", "create", "edit", "delete"],
-    "submissions": ["view", "create", "edit", "delete"],
-    "results": ["view", "create", "edit", "delete"]
-  }
-}
-```
-
-## User Management
-
-### List Users (Admin/Instructor Only)
+#### List Users (Admin/Instructor only)
 
 ```
 GET /users
 ```
 
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
 **Query Parameters:**
-- `role_id` (optional): Filter users by role ID
+- `page`: Page number (default: 1)
+- `per_page`: Items per page (default: 15)
+- `role_id`: Filter by role ID
 
 **Response:**
 ```json
@@ -263,39 +179,30 @@ Authorization: Bearer your_auth_token
   "users": [
     {
       "id": 1,
-      "name": "Admin User",
-      "email": "admin@example.com",
-      "role_id": 3,
-      "role": {
-        "id": 3,
-        "name": "administrator",
-        "description": "Platform management personnel"
-      }
+      "name": "John Doe",
+      "email": "john@example.com",
+      "role_id": 1
     },
     {
       "id": 2,
-      "name": "Instructor User",
-      "email": "instructor@example.com",
-      "role_id": 2,
-      "role": {
-        "id": 2,
-        "name": "instructor",
-        "description": "Teaching staff for evaluation"
-      }
+      "name": "Jane Smith",
+      "email": "jane@example.com",
+      "role_id": 2
     }
-  ]
+  ],
+  "pagination": {
+    "total": 10,
+    "per_page": 15,
+    "current_page": 1,
+    "last_page": 1
+  }
 }
 ```
 
-### Create User (Admin Only)
+#### Create User (Admin only)
 
 ```
 POST /users
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
 ```
 
 **Request Body:**
@@ -321,15 +228,10 @@ Authorization: Bearer your_auth_token
 }
 ```
 
-### Get User Details
+#### Get User Details
 
 ```
-GET /users/{user_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+GET /users/{id}
 ```
 
 **Response:**
@@ -337,35 +239,26 @@ Authorization: Bearer your_auth_token
 {
   "user": {
     "id": 1,
-    "name": "Admin User",
-    "email": "admin@example.com",
-    "role_id": 3,
-    "role": {
-      "id": 3,
-      "name": "administrator",
-      "description": "Platform management personnel"
-    }
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role_id": 1,
+    "created_at": "2025-04-01T12:00:00.000000Z",
+    "updated_at": "2025-04-01T12:00:00.000000Z"
   }
 }
 ```
 
-### Update User
+#### Update User (Admin only)
 
 ```
-PUT /users/{user_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+PUT /users/{id}
 ```
 
 **Request Body:**
 ```json
 {
-  "name": "Updated User Name",
+  "name": "Updated Name",
   "email": "updated@example.com",
-  "password": "newpassword123",
   "role_id": 2
 }
 ```
@@ -376,22 +269,17 @@ Authorization: Bearer your_auth_token
   "message": "User updated successfully",
   "user": {
     "id": 1,
-    "name": "Updated User Name",
+    "name": "Updated Name",
     "email": "updated@example.com",
     "role_id": 2
   }
 }
 ```
 
-### Delete User (Admin Only)
+#### Delete User (Admin only)
 
 ```
-DELETE /users/{user_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+DELETE /users/{id}
 ```
 
 **Response:**
@@ -401,70 +289,80 @@ Authorization: Bearer your_auth_token
 }
 ```
 
-### Get User Progress
+### Permissions
+
+#### Get Roles
 
 ```
-GET /users/{user_id}/progress
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+GET /roles
 ```
 
 **Response:**
 ```json
 {
-  "user_id": 1,
-  "total_submissions": 10,
-  "successful_submissions": 8,
-  "success_rate": 80,
-  "submissions_by_language": {
-    "C": 3,
-    "JavaScript": 4,
-    "PHP": 3
-  },
-  "submissions_by_difficulty": {
-    "easy": 5,
-    "medium": 3,
-    "hard": 2
-  },
-  "recent_submissions": [
+  "roles": [
     {
-      "id": 10,
-      "problem_id": 5,
-      "status": "completed",
-      "created_at": "2025-04-01T12:00:00Z"
+      "id": 1,
+      "name": "candidate",
+      "description": "Applicant to YouCode training"
+    },
+    {
+      "id": 2,
+      "name": "instructor",
+      "description": "Teaching staff for evaluation"
+    },
+    {
+      "id": 3,
+      "name": "administrator",
+      "description": "Platform management personnel"
     }
   ]
 }
 ```
 
-### Get Current User Progress
+#### Check Role
 
 ```
-GET /my-progress
+GET /check-role/{role}
 ```
 
-**Headers:**
+**Response:**
+```json
+{
+  "has_role": true
+}
 ```
-Authorization: Bearer your_auth_token
+
+#### Get User Permissions
+
+```
+GET /permissions
 ```
 
-**Response:** Same as `/users/{user_id}/progress`
+**Response:**
+```json
+{
+  "permissions": [
+    "view_evaluations",
+    "solve_problems",
+    "submit_code",
+    "view_own_submissions"
+  ]
+}
+```
 
-## Evaluations
+### Evaluations
 
-### List Evaluations
+#### List Evaluations
 
 ```
 GET /evaluations
 ```
 
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
+**Query Parameters:**
+- `page`: Page number (default: 1)
+- `per_page`: Items per page (default: 15)
+- `is_active`: Filter by active status (true/false)
 
 **Response:**
 ```json
@@ -472,35 +370,32 @@ Authorization: Bearer your_auth_token
   "evaluations": [
     {
       "id": 1,
-      "name": "C Programming Basics",
-      "description": "Basic C programming concepts and syntax",
-      "language": "C",
-      "is_active": true,
-      "created_at": "2025-04-01T12:00:00Z",
-      "updated_at": "2025-04-01T12:00:00Z"
+      "name": "PHP Basics",
+      "description": "Basic PHP programming concepts",
+      "language": "PHP",
+      "is_active": true
     },
     {
       "id": 2,
       "name": "JavaScript Fundamentals",
-      "description": "Core JavaScript concepts and DOM manipulation",
+      "description": "Core JavaScript concepts",
       "language": "JavaScript",
-      "is_active": true,
-      "created_at": "2025-04-01T12:00:00Z",
-      "updated_at": "2025-04-01T12:00:00Z"
+      "is_active": true
     }
-  ]
+  ],
+  "pagination": {
+    "total": 5,
+    "per_page": 15,
+    "current_page": 1,
+    "last_page": 1
+  }
 }
 ```
 
-### Get Evaluation Details
+#### Get Evaluation Details
 
 ```
-GET /evaluations/{evaluation_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+GET /evaluations/{id}
 ```
 
 **Response:**
@@ -508,33 +403,28 @@ Authorization: Bearer your_auth_token
 {
   "evaluation": {
     "id": 1,
-    "name": "C Programming Basics",
-    "description": "Basic C programming concepts and syntax",
-    "language": "C",
+    "name": "PHP Basics",
+    "description": "Basic PHP programming concepts",
+    "language": "PHP",
     "is_active": true,
-    "created_at": "2025-04-01T12:00:00Z",
-    "updated_at": "2025-04-01T12:00:00Z"
+    "created_at": "2025-04-01T12:00:00.000000Z",
+    "updated_at": "2025-04-01T12:00:00.000000Z"
   }
 }
 ```
 
-### Create Evaluation (Admin Only)
+#### Create Evaluation (Admin only)
 
 ```
 POST /evaluations
 ```
 
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
 **Request Body:**
 ```json
 {
-  "name": "PHP Basics",
-  "description": "Introduction to PHP programming",
-  "language": "PHP",
+  "name": "C Programming",
+  "description": "Introduction to C programming",
+  "language": "C",
   "is_active": true
 }
 ```
@@ -545,32 +435,25 @@ Authorization: Bearer your_auth_token
   "message": "Evaluation created successfully",
   "evaluation": {
     "id": 3,
-    "name": "PHP Basics",
-    "description": "Introduction to PHP programming",
-    "language": "PHP",
-    "is_active": true,
-    "created_at": "2025-04-01T12:00:00Z",
-    "updated_at": "2025-04-01T12:00:00Z"
+    "name": "C Programming",
+    "description": "Introduction to C programming",
+    "language": "C",
+    "is_active": true
   }
 }
 ```
 
-### Update Evaluation (Admin Only)
+#### Update Evaluation (Admin only)
 
 ```
-PUT /evaluations/{evaluation_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+PUT /evaluations/{id}
 ```
 
 **Request Body:**
 ```json
 {
-  "name": "Updated PHP Basics",
-  "description": "Updated introduction to PHP programming",
+  "name": "Updated Evaluation",
+  "description": "Updated description",
   "is_active": false
 }
 ```
@@ -580,26 +463,19 @@ Authorization: Bearer your_auth_token
 {
   "message": "Evaluation updated successfully",
   "evaluation": {
-    "id": 3,
-    "name": "Updated PHP Basics",
-    "description": "Updated introduction to PHP programming",
+    "id": 1,
+    "name": "Updated Evaluation",
+    "description": "Updated description",
     "language": "PHP",
-    "is_active": false,
-    "created_at": "2025-04-01T12:00:00Z",
-    "updated_at": "2025-04-01T12:30:00Z"
+    "is_active": false
   }
 }
 ```
 
-### Delete Evaluation (Admin Only)
+#### Delete Evaluation (Admin only)
 
 ```
-DELETE /evaluations/{evaluation_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+DELETE /evaluations/{id}
 ```
 
 **Response:**
@@ -609,23 +485,52 @@ Authorization: Bearer your_auth_token
 }
 ```
 
-## Problems
+#### Get Evaluation Leaderboard
 
-### List Problems
+```
+GET /evaluations/{id}/leaderboard
+```
+
+**Query Parameters:**
+- `limit`: Maximum number of top performers to return (default: 10)
+
+**Response:**
+```json
+{
+  "evaluation_id": 1,
+  "top_performers": [
+    {
+      "user_id": 5,
+      "name": "Top Performer",
+      "score": 850,
+      "problems_solved": 3,
+      "total_problems": 3
+    },
+    {
+      "user_id": 2,
+      "name": "Second Place",
+      "score": 720,
+      "problems_solved": 3,
+      "total_problems": 3
+    }
+  ]
+}
+```
+
+### Problems
+
+#### List Problems
 
 ```
 GET /problems
 ```
 
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
 **Query Parameters:**
-- `evaluation_id` (optional): Filter problems by evaluation ID
-- `difficulty` (optional): Filter problems by difficulty (easy, medium, hard)
-- `is_active` (optional): Filter problems by active status
+- `page`: Page number (default: 1)
+- `per_page`: Items per page (default: 15)
+- `evaluation_id`: Filter by evaluation ID
+- `difficulty`: Filter by difficulty (easy, medium, hard)
+- `is_active`: Filter by active status (true/false)
 
 **Response:**
 ```json
@@ -636,42 +541,31 @@ Authorization: Bearer your_auth_token
       "evaluation_id": 1,
       "title": "Hello World",
       "description": "Write a function that returns 'Hello, World!'",
-      "example_input": "None",
-      "example_output": "Hello, World!",
       "difficulty": "easy",
-      "time_limit": 1000,
-      "memory_limit": 128,
-      "is_active": true,
-      "created_at": "2025-04-01T12:00:00Z",
-      "updated_at": "2025-04-01T12:00:00Z"
+      "is_active": true
     },
     {
       "id": 2,
       "evaluation_id": 1,
-      "title": "Sum Two Numbers",
-      "description": "Write a function that returns the sum of two numbers",
-      "example_input": "2, 3",
-      "example_output": "5",
-      "difficulty": "easy",
-      "time_limit": 1000,
-      "memory_limit": 128,
-      "is_active": true,
-      "created_at": "2025-04-01T12:00:00Z",
-      "updated_at": "2025-04-01T12:00:00Z"
+      "title": "Factorial",
+      "description": "Write a function to calculate factorial",
+      "difficulty": "medium",
+      "is_active": true
     }
-  ]
+  ],
+  "pagination": {
+    "total": 10,
+    "per_page": 15,
+    "current_page": 1,
+    "last_page": 1
+  }
 }
 ```
 
-### Get Problem Details
+#### Get Problem Details
 
 ```
-GET /problems/{problem_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+GET /problems/{id}
 ```
 
 **Response:**
@@ -682,42 +576,35 @@ Authorization: Bearer your_auth_token
     "evaluation_id": 1,
     "title": "Hello World",
     "description": "Write a function that returns 'Hello, World!'",
-    "example_input": "None",
+    "example_input": "",
     "example_output": "Hello, World!",
     "difficulty": "easy",
     "time_limit": 1000,
     "memory_limit": 128,
     "is_active": true,
-    "created_at": "2025-04-01T12:00:00Z",
-    "updated_at": "2025-04-01T12:00:00Z"
+    "created_at": "2025-04-01T12:00:00.000000Z",
+    "updated_at": "2025-04-01T12:00:00.000000Z"
   }
 }
 ```
 
-### Create Problem (Admin Only)
+#### Create Problem (Admin/Instructor only)
 
 ```
 POST /problems
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
 ```
 
 **Request Body:**
 ```json
 {
   "evaluation_id": 1,
-  "title": "Factorial",
-  "description": "Write a function that calculates the factorial of a number",
-  "example_input": "5",
-  "example_output": "120",
-  "constraints": "0 <= n <= 12",
+  "title": "New Problem",
+  "description": "Problem description",
+  "example_input": "Sample input",
+  "example_output": "Sample output",
   "difficulty": "medium",
   "time_limit": 1000,
   "memory_limit": 128,
-  "test_cases": "[{\"input\":\"0\",\"output\":\"1\"},{\"input\":\"5\",\"output\":\"120\"}]",
   "is_active": true
 }
 ```
@@ -729,38 +616,29 @@ Authorization: Bearer your_auth_token
   "problem": {
     "id": 3,
     "evaluation_id": 1,
-    "title": "Factorial",
-    "description": "Write a function that calculates the factorial of a number",
-    "example_input": "5",
-    "example_output": "120",
-    "constraints": "0 <= n <= 12",
+    "title": "New Problem",
+    "description": "Problem description",
+    "example_input": "Sample input",
+    "example_output": "Sample output",
     "difficulty": "medium",
     "time_limit": 1000,
     "memory_limit": 128,
-    "test_cases": "[{\"input\":\"0\",\"output\":\"1\"},{\"input\":\"5\",\"output\":\"120\"}]",
-    "is_active": true,
-    "created_at": "2025-04-01T12:00:00Z",
-    "updated_at": "2025-04-01T12:00:00Z"
+    "is_active": true
   }
 }
 ```
 
-### Update Problem (Admin Only)
+#### Update Problem (Admin/Instructor only)
 
 ```
-PUT /problems/{problem_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+PUT /problems/{id}
 ```
 
 **Request Body:**
 ```json
 {
-  "title": "Updated Factorial",
-  "description": "Updated description for factorial problem",
+  "title": "Updated Problem",
+  "description": "Updated description",
   "difficulty": "hard",
   "is_active": false
 }
@@ -771,33 +649,20 @@ Authorization: Bearer your_auth_token
 {
   "message": "Problem updated successfully",
   "problem": {
-    "id": 3,
+    "id": 1,
     "evaluation_id": 1,
-    "title": "Updated Factorial",
-    "description": "Updated description for factorial problem",
-    "example_input": "5",
-    "example_output": "120",
-    "constraints": "0 <= n <= 12",
+    "title": "Updated Problem",
+    "description": "Updated description",
     "difficulty": "hard",
-    "time_limit": 1000,
-    "memory_limit": 128,
-    "test_cases": "[{\"input\":\"0\",\"output\":\"1\"},{\"input\":\"5\",\"output\":\"120\"}]",
-    "is_active": false,
-    "created_at": "2025-04-01T12:00:00Z",
-    "updated_at": "2025-04-01T12:30:00Z"
+    "is_active": false
   }
 }
 ```
 
-### Delete Problem (Admin Only)
+#### Delete Problem (Admin only)
 
 ```
-DELETE /problems/{problem_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+DELETE /problems/{id}
 ```
 
 **Response:**
@@ -807,25 +672,126 @@ Authorization: Bearer your_auth_token
 }
 ```
 
-## Submissions
+#### Create Test Cases (Admin/Instructor only)
 
-### List Submissions
+```
+POST /problems/{id}/test-cases
+```
+
+**Request Body:**
+```json
+{
+  "test_cases": [
+    {
+      "input": "",
+      "output": "Hello, World!"
+    },
+    {
+      "input": "name=John",
+      "output": "Hello, John!"
+    }
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Test cases created successfully",
+  "problem": {
+    "id": 1,
+    "title": "Hello World"
+  }
+}
+```
+
+#### Validate Test Cases (Admin/Instructor only)
+
+```
+POST /problems/{id}/validate-test-cases
+```
+
+**Request Body:**
+```json
+{
+  "sample_solution": "<?php echo 'Hello, World!'; ?>",
+  "language": "PHP"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Test cases are valid",
+  "validation_result": {
+    "valid": true,
+    "test_results": [
+      {
+        "test_case": 1,
+        "success": true,
+        "execution_time": 5,
+        "memory_usage": 1024,
+        "output": "Hello, World!"
+      }
+    ]
+  }
+}
+```
+
+#### Generate Test Cases (Admin/Instructor only)
+
+```
+POST /problems/{id}/generate-test-cases
+```
+
+**Request Body:**
+```json
+{
+  "sample_solution": "<?php echo 'Hello, World!'; ?>",
+  "language": "PHP",
+  "inputs": [
+    "",
+    "name=John",
+    "name=Alice"
+  ]
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Test cases generated successfully",
+  "test_cases": [
+    {
+      "input": "",
+      "output": "Hello, World!"
+    },
+    {
+      "input": "name=John",
+      "output": "Hello, John!"
+    },
+    {
+      "input": "name=Alice",
+      "output": "Hello, Alice!"
+    }
+  ]
+}
+```
+
+### Submissions
+
+#### List Submissions
 
 ```
 GET /submissions
 ```
 
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
 **Query Parameters:**
-- `user_id` (optional): Filter submissions by user ID
-- `problem_id` (optional): Filter submissions by problem ID
-- `language` (optional): Filter submissions by language
-- `status` (optional): Filter submissions by status
-- `my_submissions` (optional): Set to `true` to get only current user's submissions
+- `page`: Page number (default: 1)
+- `per_page`: Items per page (default: 15)
+- `user_id`: Filter by user ID
+- `problem_id`: Filter by problem ID
+- `status`: Filter by status (pending, running, completed, failed)
 
 **Response:**
 ```json
@@ -835,37 +801,61 @@ Authorization: Bearer your_auth_token
       "id": 1,
       "user_id": 1,
       "problem_id": 1,
-      "code": "function helloWorld() { return 'Hello, World!'; }",
-      "language": "JavaScript",
+      "language": "PHP",
       "status": "completed",
-      "created_at": "2025-04-01T12:00:00Z",
-      "updated_at": "2025-04-01T12:00:00Z",
-      "result": {
-        "id": 1,
-        "submission_id": 1,
-        "success": true,
-        "execution_time": 5,
-        "memory_usage": 1024,
-        "output": "Hello, World!",
-        "error_message": null,
-        "test_results": "[{\"test_case\":1,\"success\":true,\"output\":\"Hello, World!\"}]",
-        "created_at": "2025-04-01T12:00:00Z",
-        "updated_at": "2025-04-01T12:00:00Z"
-      }
+      "created_at": "2025-04-01T12:00:00.000000Z"
+    },
+    {
+      "id": 2,
+      "user_id": 1,
+      "problem_id": 2,
+      "language": "PHP",
+      "status": "failed",
+      "created_at": "2025-04-01T12:30:00.000000Z"
     }
-  ]
+  ],
+  "pagination": {
+    "total": 5,
+    "per_page": 15,
+    "current_page": 1,
+    "last_page": 1
+  }
 }
 ```
 
-### Get Submission Details
+#### Create Submission
 
 ```
-GET /submissions/{submission_id}
+POST /submissions
 ```
 
-**Headers:**
+**Request Body:**
+```json
+{
+  "problem_id": 1,
+  "code": "<?php echo 'Hello, World!'; ?>",
+  "language": "PHP"
+}
 ```
-Authorization: Bearer your_auth_token
+
+**Response:**
+```json
+{
+  "message": "Submission created successfully",
+  "submission": {
+    "id": 3,
+    "user_id": 1,
+    "problem_id": 1,
+    "language": "PHP",
+    "status": "pending"
+  }
+}
+```
+
+#### Get Submission Details
+
+```
+GET /submissions/{id}
 ```
 
 **Response:**
@@ -875,11 +865,11 @@ Authorization: Bearer your_auth_token
     "id": 1,
     "user_id": 1,
     "problem_id": 1,
-    "code": "function helloWorld() { return 'Hello, World!'; }",
-    "language": "JavaScript",
+    "code": "<?php echo 'Hello, World!'; ?>",
+    "language": "PHP",
     "status": "completed",
-    "created_at": "2025-04-01T12:00:00Z",
-    "updated_at": "2025-04-01T12:00:00Z",
+    "created_at": "2025-04-01T12:00:00.000000Z",
+    "updated_at": "2025-04-01T12:00:05.000000Z",
     "result": {
       "id": 1,
       "submission_id": 1,
@@ -888,103 +878,21 @@ Authorization: Bearer your_auth_token
       "memory_usage": 1024,
       "output": "Hello, World!",
       "error_message": null,
-      "test_results": "[{\"test_case\":1,\"success\":true,\"output\":\"Hello, World!\"}]",
-      "created_at": "2025-04-01T12:00:00Z",
-      "updated_at": "2025-04-01T12:00:00Z"
+      "score": 100
+    },
+    "problem": {
+      "id": 1,
+      "title": "Hello World",
+      "difficulty": "easy"
     }
   }
 }
 ```
 
-### Create Submission
+#### Delete Submission
 
 ```
-POST /submissions
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
-**Request Body:**
-```json
-{
-  "problem_id": 1,
-  "code": "function helloWorld() { return 'Hello, World!'; }",
-  "language": "JavaScript"
-}
-```
-
-**Response:**
-```json
-{
-  "message": "Submission created successfully",
-  "submission": {
-    "id": 2,
-    "user_id": 1,
-    "problem_id": 1,
-    "code": "function helloWorld() { return 'Hello, World!'; }",
-    "language": "JavaScript",
-    "status": "pending",
-    "created_at": "2025-04-01T12:30:00Z",
-    "updated_at": "2025-04-01T12:30:00Z"
-  },
-  "result": {
-    "id": 2,
-    "submission_id": 2,
-    "success": false,
-    "output": "Submission queued for processing",
-    "created_at": "2025-04-01T12:30:00Z",
-    "updated_at": "2025-04-01T12:30:00Z"
-  }
-}
-```
-
-### Update Submission Status (Admin/Instructor Only)
-
-```
-PUT /submissions/{submission_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
-**Request Body:**
-```json
-{
-  "status": "completed"
-}
-```
-
-**Response:**
-```json
-{
-  "message": "Submission updated successfully",
-  "submission": {
-    "id": 2,
-    "user_id": 1,
-    "problem_id": 1,
-    "code": "function helloWorld() { return 'Hello, World!'; }",
-    "language": "JavaScript",
-    "status": "completed",
-    "created_at": "2025-04-01T12:30:00Z",
-    "updated_at": "2025-04-01T12:35:00Z"
-  }
-}
-```
-
-### Delete Submission
-
-```
-DELETE /submissions/{submission_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+DELETE /submissions/{id}
 ```
 
 **Response:**
@@ -994,22 +902,19 @@ Authorization: Bearer your_auth_token
 }
 ```
 
-## Results
+### Results
 
-### List Results
+#### List Results
 
 ```
 GET /results
 ```
 
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
 **Query Parameters:**
-- `submission_id` (optional): Filter results by submission ID
-- `my_results` (optional): Set to `true` to get only results for current user's submissions
+- `page`: Page number (default: 1)
+- `per_page`: Items per page (default: 15)
+- `submission_id`: Filter by submission ID
+- `success`: Filter by success status (true/false)
 
 **Response:**
 ```json
@@ -1021,34 +926,32 @@ Authorization: Bearer your_auth_token
       "success": true,
       "execution_time": 5,
       "memory_usage": 1024,
-      "output": "Hello, World!",
-      "error_message": null,
-      "test_results": "[{\"test_case\":1,\"success\":true,\"output\":\"Hello, World!\"}]",
-      "created_at": "2025-04-01T12:00:00Z",
-      "updated_at": "2025-04-01T12:00:00Z",
-      "submission": {
-        "id": 1,
-        "user_id": 1,
-        "problem_id": 1,
-        "language": "JavaScript",
-        "status": "completed",
-        "created_at": "2025-04-01T12:00:00Z",
-        "updated_at": "2025-04-01T12:00:00Z"
-      }
+      "score": 100,
+      "created_at": "2025-04-01T12:00:05.000000Z"
+    },
+    {
+      "id": 2,
+      "submission_id": 2,
+      "success": false,
+      "execution_time": 10,
+      "memory_usage": 2048,
+      "score": 0,
+      "created_at": "2025-04-01T12:30:05.000000Z"
     }
-  ]
+  ],
+  "pagination": {
+    "total": 5,
+    "per_page": 15,
+    "current_page": 1,
+    "last_page": 1
+  }
 }
 ```
 
-### Get Result Details
+#### Get Result Details
 
 ```
-GET /results/{result_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+GET /results/{id}
 ```
 
 **Response:**
@@ -1062,134 +965,444 @@ Authorization: Bearer your_auth_token
     "memory_usage": 1024,
     "output": "Hello, World!",
     "error_message": null,
-    "test_results": "[{\"test_case\":1,\"success\":true,\"output\":\"Hello, World!\"}]",
-    "created_at": "2025-04-01T12:00:00Z",
-    "updated_at": "2025-04-01T12:00:00Z"
+    "test_results": [
+      {
+        "test_case": 1,
+        "success": true,
+        "execution_time": 5,
+        "memory_usage": 1024,
+        "output": "Hello, World!"
+      }
+    ],
+    "score": 100,
+    "created_at": "2025-04-01T12:00:05.000000Z",
+    "updated_at": "2025-04-01T12:00:05.000000Z"
   }
 }
 ```
 
-### Create Result (Admin/Instructor Only)
+### Code Execution
+
+#### Submit Code
 
 ```
-POST /results
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+POST /code/submit
 ```
 
 **Request Body:**
 ```json
 {
-  "submission_id": 2,
-  "success": true,
-  "execution_time": 10,
-  "memory_usage": 2048,
-  "output": "Hello, World!",
-  "error_message": null,
-  "test_results": "[{\"test_case\":1,\"success\":true,\"output\":\"Hello, World!\"}]"
+  "problem_id": 1,
+  "code": "<?php echo 'Hello, World!'; ?>",
+  "language": "PHP"
 }
 ```
 
 **Response:**
 ```json
 {
-  "message": "Result created successfully",
+  "message": "Submission processed successfully",
+  "submission": {
+    "id": 3,
+    "user_id": 1,
+    "problem_id": 1,
+    "language": "PHP",
+    "status": "completed"
+  },
   "result": {
     "id": 3,
-    "submission_id": 2,
+    "submission_id": 3,
     "success": true,
-    "execution_time": 10,
-    "memory_usage": 2048,
+    "execution_time": 5,
+    "memory_usage": 1024,
     "output": "Hello, World!",
     "error_message": null,
-    "test_results": "[{\"test_case\":1,\"success\":true,\"output\":\"Hello, World!\"}]",
-    "created_at": "2025-04-01T12:40:00Z",
-    "updated_at": "2025-04-01T12:40:00Z"
+    "score": 100
   }
 }
 ```
 
-### Update Result (Admin/Instructor Only)
+#### Get Submission
 
 ```
-PUT /results/{result_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
-```
-
-**Request Body:**
-```json
-{
-  "success": false,
-  "error_message": "Test case failed",
-  "test_results": "[{\"test_case\":1,\"success\":false,\"output\":\"Incorrect output\"}]"
-}
+GET /code/submissions/{id}
 ```
 
 **Response:**
 ```json
 {
-  "message": "Result updated successfully",
-  "result": {
-    "id": 3,
-    "submission_id": 2,
-    "success": false,
-    "execution_time": 10,
-    "memory_usage": 2048,
-    "output": "Hello, World!",
-    "error_message": "Test case failed",
-    "test_results": "[{\"test_case\":1,\"success\":false,\"output\":\"Incorrect output\"}]",
-    "created_at": "2025-04-01T12:40:00Z",
-    "updated_at": "2025-04-01T12:45:00Z"
+  "submission": {
+    "id": 1,
+    "user_id": 1,
+    "problem_id": 1,
+    "code": "<?php echo 'Hello, World!'; ?>",
+    "language": "PHP",
+    "status": "completed",
+    "result": {
+      "id": 1,
+      "submission_id": 1,
+      "success": true,
+      "execution_time": 5,
+      "memory_usage": 1024,
+      "output": "Hello, World!",
+      "error_message": null,
+      "score": 100
+    },
+    "problem": {
+      "id": 1,
+      "title": "Hello World",
+      "difficulty": "easy"
+    }
   }
 }
 ```
 
-### Delete Result (Admin Only)
+### User Progress
+
+#### Get My Progress
 
 ```
-DELETE /results/{result_id}
-```
-
-**Headers:**
-```
-Authorization: Bearer your_auth_token
+GET /my-progress
 ```
 
 **Response:**
 ```json
 {
-  "message": "Result deleted successfully"
+  "user_id": 1,
+  "total_submissions": 5,
+  "successful_submissions": 3,
+  "success_rate": 60,
+  "submissions_by_language": {
+    "PHP": 3,
+    "JavaScript": 2
+  },
+  "submissions_by_difficulty": {
+    "easy": 2,
+    "medium": 2,
+    "hard": 1
+  },
+  "solved_problems_count": 3,
+  "recent_submissions": [
+    {
+      "id": 5,
+      "problem_id": 3,
+      "language": "PHP",
+      "status": "completed",
+      "created_at": "2025-04-01T14:00:00.000000Z"
+    },
+    {
+      "id": 4,
+      "problem_id": 2,
+      "language": "JavaScript",
+      "status": "failed",
+      "created_at": "2025-04-01T13:30:00.000000Z"
+    }
+  ]
+}
+```
+
+#### Get User Progress (Admin/Instructor only)
+
+```
+GET /users/{id}/progress
+```
+
+**Response:**
+```json
+{
+  "user_id": 2,
+  "total_submissions": 10,
+  "successful_submissions": 7,
+  "success_rate": 70,
+  "submissions_by_language": {
+    "PHP": 5,
+    "JavaScript": 3,
+    "C": 2
+  },
+  "submissions_by_difficulty": {
+    "easy": 4,
+    "medium": 4,
+    "hard": 2
+  },
+  "solved_problems_count": 7,
+  "recent_submissions": [
+    {
+      "id": 15,
+      "problem_id": 5,
+      "language": "C",
+      "status": "completed",
+      "created_at": "2025-04-01T15:00:00.000000Z"
+    },
+    {
+      "id": 14,
+      "problem_id": 4,
+      "language": "JavaScript",
+      "status": "completed",
+      "created_at": "2025-04-01T14:30:00.000000Z"
+    }
+  ]
+}
+```
+
+#### Get My Evaluation Progress
+
+```
+GET /my-evaluations/{id}/progress
+```
+
+**Response:**
+```json
+{
+  "user_id": 1,
+  "evaluation_id": 1,
+  "total_problems": 3,
+  "solved_problems": 2,
+  "completion_percentage": 66.67,
+  "problems": [
+    {
+      "problem_id": 1,
+      "title": "Hello World",
+      "difficulty": "easy",
+      "is_solved": true,
+      "attempts": 1,
+      "best_score": 100
+    },
+    {
+      "problem_id": 2,
+      "title": "Factorial",
+      "difficulty": "medium",
+      "is_solved": true,
+      "attempts": 2,
+      "best_score": 180
+    },
+    {
+      "problem_id": 3,
+      "title": "Binary Search",
+      "difficulty": "hard",
+      "is_solved": false,
+      "attempts": 1,
+      "best_score": 0
+    }
+  ]
+}
+```
+
+#### Get User Evaluation Progress (Admin/Instructor only)
+
+```
+GET /users/{user_id}/evaluations/{evaluation_id}/progress
+```
+
+**Response:**
+```json
+{
+  "user_id": 2,
+  "evaluation_id": 1,
+  "total_problems": 3,
+  "solved_problems": 3,
+  "completion_percentage": 100,
+  "problems": [
+    {
+      "problem_id": 1,
+      "title": "Hello World",
+      "difficulty": "easy",
+      "is_solved": true,
+      "attempts": 1,
+      "best_score": 100
+    },
+    {
+      "problem_id": 2,
+      "title": "Factorial",
+      "difficulty": "medium",
+      "is_solved": true,
+      "attempts": 1,
+      "best_score": 200
+    },
+    {
+      "problem_id": 3,
+      "title": "Binary Search",
+      "difficulty": "hard",
+      "is_solved": true,
+      "attempts": 3,
+      "best_score": 250
+    }
+  ]
+}
+```
+
+#### Get My Learning Path Recommendations
+
+```
+GET /my-learning-path
+```
+
+**Response:**
+```json
+{
+  "user_id": 1,
+  "priority_problems": [
+    {
+      "id": 3,
+      "title": "Binary Search",
+      "difficulty": "hard"
+    }
+  ],
+  "recommended_by_difficulty": {
+    "easy": [
+      {
+        "id": 4,
+        "title": "String Reversal",
+        "difficulty": "easy"
+      },
+      {
+        "id": 7,
+        "title": "FizzBuzz",
+        "difficulty": "easy"
+      }
+    ],
+    "medium": [
+      {
+        "id": 5,
+        "title": "Palindrome Check",
+        "difficulty": "medium"
+      },
+      {
+        "id": 8,
+        "title": "Array Sorting",
+        "difficulty": "medium"
+      }
+    ],
+    "hard": [
+      {
+        "id": 6,
+        "title": "Dijkstra's Algorithm",
+        "difficulty": "hard"
+      },
+      {
+        "id": 9,
+        "title": "Dynamic Programming",
+        "difficulty": "hard"
+      }
+    ]
+  },
+  "recommended_by_language": [
+    {
+      "id": 10,
+      "title": "PHP Arrays",
+      "difficulty": "medium"
+    },
+    {
+      "id": 11,
+      "title": "PHP Functions",
+      "difficulty": "medium"
+    },
+    {
+      "id": 12,
+      "title": "PHP OOP",
+      "difficulty": "hard"
+    }
+  ],
+  "most_used_language": "PHP"
+}
+```
+
+#### Get My Activity Timeline
+
+```
+GET /my-activity
+```
+
+**Query Parameters:**
+- `days`: Number of days to include in the timeline (default: 30)
+
+**Response:**
+```json
+{
+  "user_id": 1,
+  "days": 30,
+  "timeline": [
+    {
+      "date": "2025-04-01",
+      "total_submissions": 3,
+      "successful_submissions": 2
+    },
+    {
+      "date": "2025-03-31",
+      "total_submissions": 2,
+      "successful_submissions": 1
+    },
+    {
+      "date": "2025-03-30",
+      "total_submissions": 0,
+      "successful_submissions": 0
+    }
+  ]
+}
+```
+
+#### Get User Score
+
+```
+GET /users/{id}/score
+```
+
+**Response:**
+```json
+{
+  "user_id": 1,
+  "name": "John Doe",
+  "total_score": 550,
+  "ranking": 3
 }
 ```
 
 ## Error Responses
 
-All API endpoints return appropriate HTTP status codes:
-
-- `200 OK`: Request succeeded
-- `201 Created`: Resource created successfully
-- `400 Bad Request`: Invalid request parameters
-- `401 Unauthorized`: Authentication required or failed
-- `403 Forbidden`: Insufficient permissions
-- `404 Not Found`: Resource not found
-- `422 Unprocessable Entity`: Validation errors
-- `500 Internal Server Error`: Server error
-
-Error responses include a message and, when applicable, detailed validation errors:
+### Validation Error
 
 ```json
 {
   "message": "Validation failed",
   "errors": {
-    "email": ["The email field is required."],
-    "password": ["The password field is required."]
+    "email": [
+      "The email field is required."
+    ],
+    "password": [
+      "The password field is required."
+    ]
   }
+}
+```
+
+### Authentication Error
+
+```json
+{
+  "message": "Unauthenticated."
+}
+```
+
+### Authorization Error
+
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+### Resource Not Found
+
+```json
+{
+  "message": "Resource not found"
+}
+```
+
+### Server Error
+
+```json
+{
+  "message": "Server error",
+  "error": "Error details"
 }
 ```

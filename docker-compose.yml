@@ -1,16 +1,14 @@
 version: '3'
-
 services:
   app:
     build:
-      context: ./docker
-      dockerfile: Dockerfile
-    image: youcode-evaluator
-    container_name: youcode-app
+      context: .
+      dockerfile: docker/Dockerfile
+    container_name: youcode-evaluator-app
     restart: unless-stopped
-    working_dir: /var/www/html
+    working_dir: /var/www/
     volumes:
-      - ./:/var/www/html
+      - ./:/var/www
     networks:
       - youcode-network
     depends_on:
@@ -18,26 +16,26 @@ services:
 
   db:
     image: postgres:14
-    container_name: youcode-db
+    container_name: youcode-evaluator-db
     restart: unless-stopped
     environment:
       POSTGRES_DB: youcode_evaluator
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
     networks:
       - youcode-network
 
   nginx:
     image: nginx:alpine
-    container_name: youcode-nginx
+    container_name: youcode-evaluator-nginx
     restart: unless-stopped
     ports:
       - "8000:80"
     volumes:
-      - ./:/var/www/html
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d
+      - ./:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d/
     networks:
       - youcode-network
     depends_on:
@@ -48,5 +46,4 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-data:
-    driver: local
+  postgres_data:

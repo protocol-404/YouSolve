@@ -9,6 +9,8 @@ use App\Http\Controllers\ProblemController;
 use App\Http\Controllers\SubmissionController;
 use App\Http\Controllers\ResultController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\CodeExecutionController;
+use App\Http\Controllers\UserProgressController;
 
 /*
 |--------------------------------------------------------------------------
@@ -44,8 +46,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/users/{user}', [UserController::class, 'show']);
     Route::put('/users/{user}', [UserController::class, 'update']);
     Route::delete('/users/{user}', [UserController::class, 'destroy']);
-    Route::get('/users/{user}/progress', [UserController::class, 'progress']);
-    Route::get('/my-progress', [UserController::class, 'progress']);
+    
+    // User progress routes
+    Route::get('/my-progress', [UserProgressController::class, 'getMyProgress']);
+    Route::get('/users/{user}/progress', [UserProgressController::class, 'getUserProgress']);
+    Route::get('/my-evaluations/{evaluation}/progress', [UserProgressController::class, 'getMyEvaluationProgress']);
+    Route::get('/users/{user}/evaluations/{evaluation}/progress', [UserProgressController::class, 'getUserEvaluationProgress']);
+    Route::get('/my-learning-path', [UserProgressController::class, 'getMyLearningPathRecommendations']);
+    Route::get('/my-activity', [UserProgressController::class, 'getMyActivityTimeline']);
+    Route::get('/users/{user}/score', [UserProgressController::class, 'getUserScore']);
+    Route::get('/evaluations/{evaluation}/leaderboard', [UserProgressController::class, 'getEvaluationLeaderboard']);
     
     // Evaluation routes
     Route::get('/evaluations', [EvaluationController::class, 'index']);
@@ -65,6 +75,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/results', [ResultController::class, 'index']);
     Route::get('/results/{result}', [ResultController::class, 'show']);
     
+    // Code execution routes
+    Route::post('/code/submit', [CodeExecutionController::class, 'submitCode']);
+    Route::get('/code/submissions/{id}', [CodeExecutionController::class, 'getSubmission']);
+    
     // Admin only routes
     Route::middleware('role:administrator')->group(function () {
         // Evaluation management
@@ -83,6 +97,11 @@ Route::middleware('auth:sanctum')->group(function () {
     
     // Instructor routes
     Route::middleware('role:administrator,instructor')->group(function () {
+        // Test case management
+        Route::post('/problems/{problem}/test-cases', [CodeExecutionController::class, 'createTestCases']);
+        Route::post('/problems/{problem}/validate-test-cases', [CodeExecutionController::class, 'validateTestCases']);
+        Route::post('/problems/{problem}/generate-test-cases', [CodeExecutionController::class, 'generateTestCases']);
+        
         // Result management for instructors
         Route::post('/results', [ResultController::class, 'store']);
         Route::put('/results/{result}', [ResultController::class, 'update']);

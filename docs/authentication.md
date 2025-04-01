@@ -1,132 +1,294 @@
-# Authentication Flow Documentation for YouCode Evaluator
+# Authentication Flow Documentation - YouCode Evaluator
 
-This document describes the authentication flow and security mechanisms implemented in the YouCode Evaluator platform.
+This document provides detailed information about the authentication and authorization flow in the YouCode Evaluator platform.
 
 ## Overview
 
-The YouCode Evaluator platform uses Laravel Sanctum for API token authentication, providing a secure and stateless authentication system for the API. The authentication flow includes user registration, login, logout, password reset, and session management.
+The YouCode Evaluator platform uses a token-based authentication system implemented with Laravel Sanctum. This system provides secure authentication for API access and supports role-based authorization.
 
 ## Authentication Flow
 
-### User Registration
+### Registration
 
-1. User submits registration information (name, email, password, role)
-2. System validates the input data
-3. If validation passes, the system:
-   - Creates a new user record with hashed password
-   - Assigns the specified role to the user
-   - Generates an API token for the user
-   - Returns the user data and token
+1. User submits registration information (name, email, password)
+2. System validates the information
+3. System creates a new user record with a hashed password
+4. System assigns the default 'candidate' role to the user
+5. System generates an authentication token
+6. System returns the token to the user
 
-### User Login
+### Login
 
 1. User submits login credentials (email, password)
 2. System validates the credentials
-3. If credentials are valid, the system:
-   - Generates a new API token for the user
-   - Returns the user data and token
-4. If credentials are invalid, the system returns an authentication error
+3. System generates an authentication token
+4. System returns the token to the user
 
-### User Logout
+### Authentication
 
-1. User sends a logout request with their API token
-2. System invalidates and deletes the current token
-3. Returns a success message
+1. User includes the token in the Authorization header of API requests
+2. System validates the token
+3. System identifies the user associated with the token
+4. System allows or denies access based on the user's role and permissions
+
+### Logout
+
+1. User sends a logout request with their token
+2. System invalidates the token
+3. System confirms successful logout
 
 ### Password Reset
 
 1. User requests a password reset by providing their email
-2. System sends a password reset link to the user's email
-3. User clicks the link and submits a new password
+2. System generates a password reset token and sends it to the user's email
+3. User submits a new password along with the reset token
 4. System validates the token and updates the user's password
-5. Returns a success message
+5. System confirms successful password reset
 
-## Token-based Authentication
+## Token Management
 
-The YouCode Evaluator platform uses Laravel Sanctum for token-based authentication:
+### Token Generation
 
-1. When a user logs in or registers, the system generates a personal access token
-2. This token must be included in the `Authorization` header of all API requests:
-   ```
-   Authorization: Bearer {token}
-   ```
-3. The system validates the token for each request to protected endpoints
-4. If the token is valid, the request is processed
-5. If the token is invalid or expired, the system returns a 401 Unauthorized response
+Tokens are generated using Laravel Sanctum's token generation mechanism, which creates a secure, random token for each user session.
 
-## Session Management
+### Token Storage
 
-The platform includes a custom middleware (`EnsureSessionIsValid`) to manage API sessions:
+Tokens are stored in the `personal_access_tokens` table with the following information:
+- Token ID
+- User ID
+- Token name
+- Hashed token
+- Token abilities (permissions)
+- Last used timestamp
+- Expiration timestamp
 
-1. The middleware checks if the user is authenticated
-2. It verifies that the token being used is still valid and not expired
-3. If the session is invalid, the middleware returns a 401 Unauthorized response
+### Token Validation
 
-## Role-based Access Control
+When a request is received with an authentication token:
+1. System retrieves the token from the Authorization header
+2. System looks up the token in the database
+3. System verifies the token is valid and not expired
+4. System identifies the associated user
+5. System proceeds with the request if the token is valid
 
-Authentication is tightly integrated with the authorization system:
+### Token Expiration
 
-1. Each user is assigned a role (candidate, instructor, or administrator)
-2. The `CheckRole` middleware validates user roles for protected routes
-3. Different API endpoints require different roles for access
-4. The system checks the user's role before allowing access to protected resources
+Tokens can be configured to expire after a certain period of inactivity. The default expiration time is 60 minutes of inactivity, but this can be configured in the application settings.
 
-## Security Measures
+## Role-Based Authorization
 
-The YouCode Evaluator platform implements several security measures:
+### Roles
 
-1. **Password Hashing**: All passwords are hashed using Laravel's bcrypt implementation
-2. **CSRF Protection**: Cross-Site Request Forgery protection for web routes
-3. **Rate Limiting**: API routes are rate-limited to prevent abuse
-4. **Validation**: All input data is validated before processing
-5. **Secure Headers**: HTTP headers are configured for security
-6. **Token Expiration**: API tokens can be configured to expire after a certain period
+The system defines three roles:
+1. **Candidate**: Applicant to YouCode training
+2. **Instructor**: Teaching staff for evaluation
+3. **Administrator**: Platform management personnel
 
-## Authentication Controllers and Middleware
+### Role Assignment
 
-### AuthController
+- Users are assigned a role during registration (default: candidate)
+- Administrators can change user roles through the user management interface
 
-The `AuthController` handles all authentication-related functionality:
+### Permission Checks
 
-- `register()`: Handles user registration
-- `login()`: Handles user login
-- `logout()`: Handles user logout
-- `user()`: Returns the authenticated user's data
-- `forgotPassword()`: Handles password reset requests
-- `resetPassword()`: Handles password reset
+Permission checks are performed at several levels:
+1. **Route middleware**: Restricts access to routes based on user roles
+2. **Controller methods**: Validates user permissions for specific actions
+3. **Service layer**: Enforces business rules based on user roles
 
 ### Middleware
 
-- `EnsureSessionIsValid`: Validates the user's session
-- `CheckRole`: Validates the user's role for protected routes
+The system uses custom middleware to enforce role-based access control:
+- `role`: Checks if the user has one of the specified roles
+- `ensureSessionIsValid`: Validates the user's session
 
-## Authentication Routes
+## Implementation Details
 
+### User Model
+
+The User model implements the `HasApiTokens` trait from Laravel Sanctum, which provides methods for token management:
+- `createToken()`: Creates a new API token
+- `tokens()`: Relationship to the user's tokens
+- `currentAccessToken()`: Gets the current token being used
+- `withAccessToken()`: Sets the current token
+
+### Authentication Controller
+
+The AuthController handles authentication-related actions:
+- `register()`: Registers a new user
+- `login()`: Authenticates a user and issues a token
+- `logout()`: Invalidates the current token
+- `forgotPassword()`: Initiates the password reset process
+- `resetPassword()`: Completes the password reset process
+- `user()`: Returns the authenticated user's information
+
+### Middleware Registration
+
+Middleware is registered in the `app/Http/Kernel.php` file:
+```php
+protected $routeMiddleware = [
+    // ...
+    'role' => \App\Http\Middleware\CheckRole::class,
+    'ensureSessionIsValid' => \App\Http\Middleware\EnsureSessionIsValid::class,
+];
 ```
-POST /api/register
-POST /api/login
-POST /api/logout
-GET /api/user
-POST /api/forgot-password
-POST /api/reset-password
+
+### Route Protection
+
+Routes are protected using middleware in the `routes/api.php` file:
+```php
+// Protected routes
+Route::middleware('auth:sanctum')->group(function () {
+    // Routes accessible to all authenticated users
+    
+    // Admin only routes
+    Route::middleware('role:administrator')->group(function () {
+        // Routes accessible only to administrators
+    });
+    
+    // Instructor routes
+    Route::middleware('role:administrator,instructor')->group(function () {
+        // Routes accessible to administrators and instructors
+    });
+});
 ```
+
+## Security Considerations
+
+### Password Hashing
+
+Passwords are hashed using bcrypt with a work factor of 10, providing strong protection against brute force attacks.
+
+### CSRF Protection
+
+Cross-Site Request Forgery (CSRF) protection is implemented for web routes, but API routes using token authentication are exempt from CSRF protection.
+
+### Rate Limiting
+
+API routes are rate-limited to prevent abuse:
+- 60 requests per minute for authenticated users
+- 10 requests per minute for unauthenticated users
+
+### Token Abilities
+
+Tokens can be created with specific abilities (permissions), allowing fine-grained control over what actions a token can perform.
+
+### Secure Headers
+
+The application sets secure headers to protect against common web vulnerabilities:
+- Content-Security-Policy
+- X-Content-Type-Options
+- X-Frame-Options
+- X-XSS-Protection
 
 ## Error Handling
 
-The authentication system includes comprehensive error handling:
+### Authentication Errors
 
-- Invalid credentials return a 401 Unauthorized response
-- Invalid tokens return a 401 Unauthorized response
-- Insufficient permissions return a 403 Forbidden response
-- Validation errors return a 422 Unprocessable Entity response with detailed error messages
+- Invalid credentials: Returns a 401 Unauthorized response
+- Expired token: Returns a 401 Unauthorized response with a message indicating the token has expired
+- Invalid token: Returns a 401 Unauthorized response with a message indicating the token is invalid
+
+### Authorization Errors
+
+- Insufficient permissions: Returns a 403 Forbidden response with a message indicating the user does not have the required permissions
+
+## Example Flows
+
+### Registration Flow
+
+```
+POST /api/register
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123",
+  "password_confirmation": "password123"
+}
+
+Response:
+{
+  "message": "User registered successfully",
+  "user": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role_id": 1
+  },
+  "token": "1|abcdefghijklmnopqrstuvwxyz123456"
+}
+```
+
+### Login Flow
+
+```
+POST /api/login
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+Response:
+{
+  "message": "Login successful",
+  "user": {
+    "id": 1,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role_id": 1
+  },
+  "token": "2|abcdefghijklmnopqrstuvwxyz123456"
+}
+```
+
+### Authenticated Request
+
+```
+GET /api/user
+Authorization: Bearer 2|abcdefghijklmnopqrstuvwxyz123456
+
+Response:
+{
+  "id": 1,
+  "name": "John Doe",
+  "email": "john@example.com",
+  "role_id": 1
+}
+```
+
+### Password Reset Flow
+
+```
+POST /api/forgot-password
+{
+  "email": "john@example.com"
+}
+
+Response:
+{
+  "message": "Password reset link sent to your email"
+}
+
+POST /api/reset-password
+{
+  "email": "john@example.com",
+  "token": "reset_token_from_email",
+  "password": "new_password",
+  "password_confirmation": "new_password"
+}
+
+Response:
+{
+  "message": "Password reset successfully"
+}
+```
 
 ## Best Practices
 
-The YouCode Evaluator platform follows these authentication best practices:
-
-1. Use HTTPS for all API requests
-2. Store tokens securely on the client side
-3. Include the token in the Authorization header for all requests
-4. Implement token refresh mechanisms for long-lived sessions
-5. Log out users when they are inactive for extended periods
-6. Implement proper error handling for authentication failures
+1. **Token Storage**: Store tokens securely on the client side, preferably in HttpOnly cookies or secure local storage.
+2. **Token Refresh**: Implement token refresh mechanisms for long-lived sessions.
+3. **Logout**: Always logout when finished to invalidate tokens.
+4. **HTTPS**: Use HTTPS for all API communications to protect tokens in transit.
+5. **Minimal Permissions**: Request and grant only the permissions needed for the specific operation.
+6. **Token Expiration**: Set appropriate expiration times for tokens based on security requirements.
+7. **Audit Logging**: Log authentication events for security monitoring and auditing.

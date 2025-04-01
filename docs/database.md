@@ -1,196 +1,294 @@
-# Database Schema Documentation for YouCode Evaluator
+# Database Schema Documentation - YouCode Evaluator
 
 This document provides detailed information about the database schema used in the YouCode Evaluator platform.
 
 ## Overview
 
-The YouCode Evaluator database consists of several interconnected tables that store information about users, roles, evaluations, problems, submissions, and results. The database is designed to support the evaluation of programming skills in C, JavaScript, and PHP.
-
-## Entity Relationship Diagram
-
-```
-+----------------+       +----------------+       +----------------+
-|     roles      |       |     users      |       |  evaluations   |
-+----------------+       +----------------+       +----------------+
-| id             |<----->| id             |       | id             |
-| name           |       | name           |       | name           |
-| description    |       | email          |       | description    |
-| timestamps     |       | password       |       | language       |
-+----------------+       | role_id        |       | is_active      |
-                         | timestamps     |       | timestamps     |
-                         +----------------+       +----------------+
-                                |                        |
-                                |                        |
-                                v                        v
-                         +----------------+       +----------------+
-                         |  submissions   |       |    problems    |
-                         +----------------+       +----------------+
-                         | id             |<----->| id             |
-                         | user_id        |       | evaluation_id  |
-                         | problem_id     |       | title          |
-                         | code           |       | description    |
-                         | language       |       | example_input  |
-                         | status         |       | example_output |
-                         | timestamps     |       | constraints    |
-                         +----------------+       | difficulty     |
-                                |                 | time_limit     |
-                                |                 | memory_limit   |
-                                v                 | test_cases     |
-                         +----------------+       | is_active      |
-                         |    results     |       | timestamps     |
-                         +----------------+       +----------------+
-                         | id             |
-                         | submission_id  |
-                         | success        |
-                         | execution_time |
-                         | memory_usage   |
-                         | output         |
-                         | error_message  |
-                         | test_results   |
-                         | timestamps     |
-                         +----------------+
-```
+The YouCode Evaluator platform uses PostgreSQL as its database management system. The database schema consists of several tables that store information about users, roles, evaluations, problems, submissions, and results.
 
 ## Tables
 
-### roles
+### Roles
 
-Stores the different user roles in the system.
+The `roles` table stores information about user roles in the system.
 
-| Column      | Type         | Description                           |
-|-------------|--------------|---------------------------------------|
-| id          | bigint       | Primary key                           |
-| name        | varchar(255) | Role name (unique)                    |
-| description | varchar(255) | Role description                      |
-| created_at  | timestamp    | Creation timestamp                    |
-| updated_at  | timestamp    | Last update timestamp                 |
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigint | Primary key |
+| name | varchar(255) | Role name (candidate, instructor, administrator) |
+| description | text | Role description |
+| created_at | timestamp | Creation timestamp |
+| updated_at | timestamp | Last update timestamp |
 
-### users
+### Users
 
-Stores user information and authentication details.
+The `users` table stores information about users of the platform.
 
-| Column           | Type         | Description                           |
-|------------------|--------------|---------------------------------------|
-| id               | bigint       | Primary key                           |
-| name             | varchar(255) | User's full name                      |
-| email            | varchar(255) | User's email address (unique)         |
-| email_verified_at| timestamp    | When email was verified (nullable)    |
-| password         | varchar(255) | Hashed password                       |
-| role_id          | bigint       | Foreign key to roles table            |
-| remember_token   | varchar(100) | Token for "remember me" functionality |
-| created_at       | timestamp    | Creation timestamp                    |
-| updated_at       | timestamp    | Last update timestamp                 |
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigint | Primary key |
+| name | varchar(255) | User's full name |
+| email | varchar(255) | User's email address (unique) |
+| email_verified_at | timestamp | Email verification timestamp |
+| password | varchar(255) | Hashed password |
+| role_id | bigint | Foreign key to roles table |
+| total_score | integer | User's total score across all evaluations |
+| remember_token | varchar(100) | Remember me token |
+| created_at | timestamp | Creation timestamp |
+| updated_at | timestamp | Last update timestamp |
 
-### evaluations
+### Evaluations
 
-Stores information about programming evaluations.
+The `evaluations` table stores information about programming evaluations.
 
-| Column      | Type         | Description                           |
-|-------------|--------------|---------------------------------------|
-| id          | bigint       | Primary key                           |
-| name        | varchar(255) | Evaluation name                       |
-| description | text         | Evaluation description (nullable)     |
-| language    | enum         | Programming language (C, JavaScript, PHP) |
-| is_active   | boolean      | Whether evaluation is active          |
-| created_at  | timestamp    | Creation timestamp                    |
-| updated_at  | timestamp    | Last update timestamp                 |
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigint | Primary key |
+| name | varchar(255) | Evaluation name |
+| description | text | Evaluation description |
+| language | varchar(255) | Programming language (C, JavaScript, PHP) |
+| is_active | boolean | Whether the evaluation is active |
+| created_at | timestamp | Creation timestamp |
+| updated_at | timestamp | Last update timestamp |
 
-### problems
+### Problems
 
-Stores programming problems for evaluations.
+The `problems` table stores information about programming problems within evaluations.
 
-| Column        | Type         | Description                           |
-|---------------|--------------|---------------------------------------|
-| id            | bigint       | Primary key                           |
-| evaluation_id | bigint       | Foreign key to evaluations table      |
-| title         | varchar(255) | Problem title                         |
-| description   | text         | Problem description                   |
-| example_input | text         | Example input (nullable)              |
-| example_output| text         | Example output (nullable)             |
-| constraints   | text         | Problem constraints (nullable)        |
-| difficulty    | enum         | Problem difficulty (easy, medium, hard) |
-| time_limit    | integer      | Time limit in milliseconds (default: 1000) |
-| memory_limit  | integer      | Memory limit in MB (default: 128)     |
-| test_cases    | text         | JSON encoded test cases (nullable)    |
-| is_active     | boolean      | Whether problem is active             |
-| created_at    | timestamp    | Creation timestamp                    |
-| updated_at    | timestamp    | Last update timestamp                 |
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigint | Primary key |
+| evaluation_id | bigint | Foreign key to evaluations table |
+| title | varchar(255) | Problem title |
+| description | text | Problem description |
+| example_input | text | Example input for the problem |
+| example_output | text | Expected output for the example input |
+| difficulty | varchar(255) | Problem difficulty (easy, medium, hard) |
+| time_limit | integer | Time limit in milliseconds |
+| memory_limit | integer | Memory limit in MB |
+| test_cases | json | JSON array of test cases |
+| is_active | boolean | Whether the problem is active |
+| created_at | timestamp | Creation timestamp |
+| updated_at | timestamp | Last update timestamp |
 
-### submissions
+### Submissions
 
-Stores user code submissions for problems.
+The `submissions` table stores information about code submissions from users.
 
-| Column      | Type         | Description                           |
-|-------------|--------------|---------------------------------------|
-| id          | bigint       | Primary key                           |
-| user_id     | bigint       | Foreign key to users table            |
-| problem_id  | bigint       | Foreign key to problems table         |
-| code        | text         | Submitted code                        |
-| language    | enum         | Programming language (C, JavaScript, PHP) |
-| status      | enum         | Submission status (pending, running, completed, failed) |
-| created_at  | timestamp    | Creation timestamp                    |
-| updated_at  | timestamp    | Last update timestamp                 |
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigint | Primary key |
+| user_id | bigint | Foreign key to users table |
+| problem_id | bigint | Foreign key to problems table |
+| code | text | Submitted code |
+| language | varchar(255) | Programming language of the submission |
+| status | varchar(255) | Submission status (pending, running, completed, failed) |
+| created_at | timestamp | Creation timestamp |
+| updated_at | timestamp | Last update timestamp |
 
-### results
+### Results
 
-Stores evaluation results for submissions.
+The `results` table stores information about the results of code submissions.
 
-| Column         | Type         | Description                           |
-|----------------|--------------|---------------------------------------|
-| id             | bigint       | Primary key                           |
-| submission_id  | bigint       | Foreign key to submissions table      |
-| success        | boolean      | Whether submission passed all tests   |
-| execution_time | integer      | Execution time in milliseconds (nullable) |
-| memory_usage   | integer      | Memory usage in KB (nullable)         |
-| output         | text         | Program output (nullable)             |
-| error_message  | text         | Error message if any (nullable)       |
-| test_results   | json         | JSON encoded test results (nullable)  |
-| created_at     | timestamp    | Creation timestamp                    |
-| updated_at     | timestamp    | Last update timestamp                 |
+| Column | Type | Description |
+|--------|------|-------------|
+| id | bigint | Primary key |
+| submission_id | bigint | Foreign key to submissions table |
+| success | boolean | Whether the submission passed all test cases |
+| execution_time | integer | Execution time in milliseconds |
+| memory_usage | integer | Memory usage in KB |
+| output | text | Output of the code execution |
+| error_message | text | Error message if execution failed |
+| test_results | json | JSON array of test case results |
+| score | integer | Score for the submission |
+| created_at | timestamp | Creation timestamp |
+| updated_at | timestamp | Last update timestamp |
 
 ## Relationships
 
-### One-to-Many Relationships
+### Users and Roles
 
-- **Role to Users**: One role can be assigned to many users.
-- **Evaluation to Problems**: One evaluation can have many problems.
-- **User to Submissions**: One user can make many submissions.
-- **Problem to Submissions**: One problem can have many submissions.
-- **Submission to Result**: One submission has one result.
+- Each user belongs to one role
+- Each role can have many users
 
-### Foreign Key Constraints
+```
+users.role_id -> roles.id
+```
 
-- `users.role_id` references `roles.id` (on delete: restrict)
-- `problems.evaluation_id` references `evaluations.id` (on delete: cascade)
-- `submissions.user_id` references `users.id` (on delete: cascade)
-- `submissions.problem_id` references `problems.id` (on delete: cascade)
-- `results.submission_id` references `submissions.id` (on delete: cascade)
+### Evaluations and Problems
+
+- Each evaluation can have many problems
+- Each problem belongs to one evaluation
+
+```
+problems.evaluation_id -> evaluations.id
+```
+
+### Problems and Submissions
+
+- Each problem can have many submissions
+- Each submission belongs to one problem
+
+```
+submissions.problem_id -> problems.id
+```
+
+### Users and Submissions
+
+- Each user can have many submissions
+- Each submission belongs to one user
+
+```
+submissions.user_id -> users.id
+```
+
+### Submissions and Results
+
+- Each submission can have one result
+- Each result belongs to one submission
+
+```
+results.submission_id -> submissions.id
+```
 
 ## Indexes
 
-- `roles.name` (unique)
-- `users.email` (unique)
-- `users.role_id` (index)
-- `problems.evaluation_id` (index)
-- `submissions.user_id` (index)
-- `submissions.problem_id` (index)
-- `results.submission_id` (index)
+The following indexes are created to optimize query performance:
+
+- `users_email_unique`: Unique index on `users.email`
+- `users_role_id_index`: Index on `users.role_id`
+- `problems_evaluation_id_index`: Index on `problems.evaluation_id`
+- `submissions_user_id_index`: Index on `submissions.user_id`
+- `submissions_problem_id_index`: Index on `submissions.problem_id`
+- `results_submission_id_unique`: Unique index on `results.submission_id`
 
 ## Migrations
 
-The database schema is created and maintained using Laravel migrations. The migration files are located in the `database/migrations` directory and are executed in the following order:
+Database migrations are managed using Laravel's migration system. The migrations are executed in the following order:
 
-1. `2025_04_01_210843_create_roles_table.php`
-2. `2025_04_01_210843_create_evaluations_table.php`
-3. `2025_04_01_210843_create_problems_table.php`
-4. `2025_04_01_210845_create_users_table.php`
-5. `2025_04_01_210846_create_submissions_table.php`
-6. `2025_04_01_210847_create_results_table.php`
+1. Create roles table
+2. Create users table (with foreign key to roles)
+3. Create evaluations table
+4. Create problems table (with foreign key to evaluations)
+5. Create submissions table (with foreign keys to users and problems)
+6. Create results table (with foreign key to submissions)
 
-## Data Seeding
+## Data Types
 
-Initial data for the roles table is provided through the `RoleSeeder` class, which creates the following roles:
+### JSON Fields
 
-1. `candidate`: Applicants to YouCode training
-2. `instructor`: Teaching staff for evaluation
-3. `administrator`: Platform management personnel
+The following fields use JSON data type:
+
+- `problems.test_cases`: Array of test cases with input and expected output
+  ```json
+  [
+    {
+      "input": "test input 1",
+      "output": "expected output 1"
+    },
+    {
+      "input": "test input 2",
+      "output": "expected output 2"
+    }
+  ]
+  ```
+
+- `results.test_results`: Array of test case results
+  ```json
+  [
+    {
+      "test_case": 1,
+      "success": true,
+      "execution_time": 5,
+      "memory_usage": 1024,
+      "output": "actual output 1"
+    },
+    {
+      "test_case": 2,
+      "success": false,
+      "execution_time": 10,
+      "memory_usage": 2048,
+      "output": "actual output 2",
+      "error_message": "Output does not match expected output"
+    }
+  ]
+  ```
+
+## Database Seeding
+
+The database is seeded with initial data for roles:
+
+- `candidate`: Applicant to YouCode training
+- `instructor`: Teaching staff for evaluation
+- `administrator`: Platform management personnel
+
+## Database Diagram
+
+```
++-------+     +-------+     +-------------+     +---------+     +-------------+     +---------+
+| roles | <-- | users | --> | submissions | <-- | results |     | evaluations | <-- | problems |
++-------+     +-------+     +-------------+     +---------+     +-------------+     +---------+
+                                  ^                                                      |
+                                  |                                                      |
+                                  +------------------------------------------------------+
+```
+
+## Query Examples
+
+### Get User with Role
+
+```sql
+SELECT u.*, r.name as role_name
+FROM users u
+JOIN roles r ON u.role_id = r.id
+WHERE u.id = 1;
+```
+
+### Get Problems for an Evaluation
+
+```sql
+SELECT *
+FROM problems
+WHERE evaluation_id = 1
+ORDER BY difficulty, id;
+```
+
+### Get Submissions for a User
+
+```sql
+SELECT s.*, p.title as problem_title
+FROM submissions s
+JOIN problems p ON s.problem_id = p.id
+WHERE s.user_id = 1
+ORDER BY s.created_at DESC;
+```
+
+### Get Results for a Submission
+
+```sql
+SELECT *
+FROM results
+WHERE submission_id = 1;
+```
+
+### Get Top Performers for an Evaluation
+
+```sql
+SELECT u.id, u.name, COUNT(DISTINCT s.problem_id) as problems_solved
+FROM users u
+JOIN submissions s ON u.id = s.user_id
+JOIN problems p ON s.problem_id = p.id
+JOIN results r ON s.id = r.submission_id
+WHERE p.evaluation_id = 1
+AND r.success = true
+GROUP BY u.id, u.name
+ORDER BY problems_solved DESC, u.id
+LIMIT 10;
+```
+
+## Performance Considerations
+
+- The database schema is designed to optimize common queries such as retrieving user submissions, problem details, and evaluation results.
+- Indexes are created on foreign keys and frequently queried columns to improve query performance.
+- JSON fields are used for flexible data structures like test cases and test results, while maintaining query capabilities.
+- The database is normalized to reduce data redundancy and maintain data integrity.
