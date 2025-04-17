@@ -1,49 +1,64 @@
-version: '3'
+version: "3.8"
+
 services:
   app:
     build:
       context: .
-      dockerfile: docker/Dockerfile
-    container_name: youcode-evaluator-app
+      dockerfile: Dockerfile
+    image: youcode-quiz
+    container_name: youcode-quiz-app
     restart: unless-stopped
-    working_dir: /var/www/
+    working_dir: /var/www/html
     volumes:
-      - ./:/var/www
+      - ./:/var/www/html
     networks:
-      - youcode-network
-    depends_on:
-      - db
+      - youcode-quiz
 
   db:
-    image: postgres:14
-    container_name: youcode-evaluator-db
+    image: mysql:8.0
+    container_name: youcode-quiz-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: youcode_evaluator
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      MYSQL_DATABASE: ${DB_DATABASE}
+      MYSQL_USER: ${DB_USERNAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - mysql_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
     networks:
-      - youcode-network
+      - youcode-quiz
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: youcode-quiz-phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      PMA_USER: ${DB_USERNAME}
+      PMA_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8080:80"
+    networks:
+      - youcode-quiz
 
   nginx:
     image: nginx:alpine
-    container_name: youcode-evaluator-nginx
+    container_name: youcode-quiz-nginx
     restart: unless-stopped
     ports:
       - "8000:80"
     volumes:
-      - ./:/var/www
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d/
+      - ./:/var/www/html
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
     networks:
-      - youcode-network
-    depends_on:
-      - app
+      - youcode-quiz
 
 networks:
-  youcode-network:
+  youcode-quiz:
     driver: bridge
 
 volumes:
-  postgres_data:
+  mysql_data:
