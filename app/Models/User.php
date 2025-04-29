@@ -8,6 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class User extends Authenticatable
@@ -16,14 +17,15 @@ class User extends Authenticatable
 
     /**
      * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
      */
     protected $fillable = [
         'name',
         'email',
         'password',
         'role_id',
+        'first_name',
+        'last_name',
+        'is_active',
     ];
 
     /**
@@ -44,6 +46,8 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'is_active' => 'boolean',
+        'last_login_at' => 'datetime',
     ];
 
     /**
@@ -55,18 +59,60 @@ class User extends Authenticatable
     }
 
     /**
-     * Get the submissions for the user.
+     * Get the classes that the user belongs to.
      */
-    public function submissions(): HasMany
+    public function classes(): BelongsToMany
     {
-        return $this->hasMany(Submission::class);
+        return $this->belongsToMany(ClassModel::class, 'class_user', 'user_id', 'class_id')
+                    ->withTimestamps()
+                    ->withPivot('joined_at');
     }
 
     /**
-     * Check if user has a specific role
+     * Get the classes that the user trains.
      */
-    public function hasRole(string $roleName): bool
+    public function trainedClasses(): HasMany
     {
-        return $this->role->name === $roleName;
+        return $this->hasMany(ClassModel::class, 'trainer_id');
+    }
+
+    /**
+     * Get the quizzes that the user created.
+     */
+    public function createdQuizzes(): HasMany
+    {
+        return $this->hasMany(Quiz::class, 'created_by');
+    }
+
+    /**
+     * Get the quiz results for the user.
+     */
+    public function quizResults(): HasMany
+    {
+        return $this->hasMany(QuizResult::class);
+    }
+
+    /**
+     * Check if the user is an administrator.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role->name === 'administrator';
+    }
+
+    /**
+     * Check if the user is a trainer.
+     */
+    public function isTrainer(): bool
+    {
+        return $this->role->name === 'trainer';
+    }
+
+    /**
+     * Check if the user is a candidate.
+     */
+    public function isCandidate(): bool
+    {
+        return $this->role->name === 'candidate';
     }
 }
