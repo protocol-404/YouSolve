@@ -1,0 +1,2013 @@
+{
+	"info": {
+		"_postman_id": "f5d8a3b1-a2c3-4d4e-b5f6-g7h8i9j0k1l2",
+		"name": "YouQuiz API",
+		"description": "Postman collection for testing the YouQuiz API based on the provided documentation.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "YourExporterID"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Register a New User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"newuser\",\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"first_name\": \"New\",\n  \"last_name\": \"User\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/register",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"register"
+							]
+						},
+						"description": "Registers a new user with the default 'candidate' role."
+					},
+					"response": []
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"var jsonData = pm.response.json();",
+									"if (jsonData.token) {",
+									"    pm.environment.set(\"token\", jsonData.token);",
+									"    console.log(\"Token set:\", jsonData.token);",
+									"} else {",
+									"    console.log(\"Token not found in response\");",
+									"}"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"{{admin_email}}\",\n  \"password\": \"{{admin_password}}\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"login"
+							]
+						},
+						"description": "Logs in a user (admin, trainer, or candidate) and retrieves a JWT token. The token is automatically saved to the 'token' environment variable."
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"refresh"
+							]
+						},
+						"description": "Refreshes the current JWT token."
+					},
+					"response": []
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/logout",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"logout"
+							]
+						},
+						"description": "Logs out the current user (invalidates token if backend supports blocklisting)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Current User",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/user",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"user"
+							]
+						},
+						"description": "Retrieves details of the currently authenticated user."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for user registration, login, token management."
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "List All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users?role=&is_active=&search=&page=1&per_page=15",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							],
+							"query": [
+								{
+									"key": "role",
+									"value": "",
+									"description": "Filter by role (admin, trainer, candidate)",
+									"disabled": true
+								},
+								{
+									"key": "is_active",
+									"value": "",
+									"description": "Filter by active status (true, false)",
+									"disabled": true
+								},
+								{
+									"key": "search",
+									"value": "",
+									"description": "Search users by name or email",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"description": "Page number",
+									"disabled": true
+								},
+								{
+									"key": "per_page",
+									"value": "15",
+									"description": "Items per page",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Lists all users with optional filtering and pagination (Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the user to retrieve"
+								}
+							]
+						},
+						"description": "Retrieves details for a specific user (Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Create a New User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"newtrainer\",\n  \"email\": \"newtrainer@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\",\n  \"first_name\": \"New\",\n  \"last_name\": \"Trainer\",\n  \"role_id\": 2, \n  \"is_active\": true,\n  \"class_ids\": [1, 2]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users"
+							]
+						},
+						"description": "Creates a new user (Admin only). role_id: 1=admin, 2=trainer, 3=candidate."
+					},
+					"response": []
+				},
+				{
+					"name": "Update a User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"first_name\": \"Updated\",\n  \"last_name\": \"Trainer\",\n  \"is_active\": true,\n  \"class_ids\": [1, 2, 3]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/users/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "2",
+									"description": "ID of the user to update"
+								}
+							]
+						},
+						"description": "Updates an existing user (Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/users/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"users",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "3",
+									"description": "ID of the user to delete"
+								}
+							]
+						},
+						"description": "Deletes a user (Admin only)."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing user accounts (Primarily Admin)."
+		},
+		{
+			"name": "Categories",
+			"item": [
+				{
+					"name": "List All Categories",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/categories?page=1&per_page=15",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "per_page",
+									"value": "15",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Lists all quiz categories."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Category Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/categories/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the category"
+								}
+							]
+						},
+						"description": "Retrieves details for a specific category."
+					},
+					"response": []
+				},
+				{
+					"name": "Create a New Category",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Programming Languages\",\n  \"slug\": \"programming-languages\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/categories",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories"
+							]
+						},
+						"description": "Creates a new category (Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update a Category",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Updated Category Name\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/categories/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the category to update"
+								}
+							]
+						},
+						"description": "Updates an existing category (Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Category",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/categories/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"categories",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the category to delete"
+								}
+							]
+						},
+						"description": "Deletes a category (Admin only)."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing quiz categories."
+		},
+		{
+			"name": "Classes",
+			"item": [
+				{
+					"name": "List All Classes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/classes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes"
+							]
+						},
+						"description": "Lists all classes (Admin/Trainer)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Class Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/classes/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the class"
+								}
+							]
+						},
+						"description": "Retrieves details for a specific class."
+					},
+					"response": []
+				},
+				{
+					"name": "Create a New Class",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Frontend Development\",\n  \"description\": \"Learn modern frontend technologies\",\n  \"trainer_ids\": [2],\n  \"candidate_ids\": [5, 6, 7]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/classes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes"
+							]
+						},
+						"description": "Creates a new class (Admin/Trainer)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update a Class",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Advanced Frontend Development\",\n  \"description\": \"Updated description\",\n  \"trainer_ids\": [2],\n  \"candidate_ids\": [5, 6, 7, 8]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/classes/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the class to update"
+								}
+							]
+						},
+						"description": "Updates an existing class (Admin/Trainer)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Class",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/classes/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the class to delete"
+								}
+							]
+						},
+						"description": "Deletes a class (Admin/Trainer)."
+					},
+					"response": []
+				},
+				{
+					"name": "Add User to Class",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"user_id\": 8,\n  \"role\": \"candidate\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/classes/:id/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								":id",
+								"users"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the class"
+								}
+							]
+						},
+						"description": "Adds a user (candidate or trainer) to a specific class (Admin/Trainer)."
+					},
+					"response": []
+				},
+				{
+					"name": "Remove User from Class",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/classes/:id/users/:user_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								":id",
+								"users",
+								":user_id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the class"
+								},
+								{
+									"key": "user_id",
+									"value": "8",
+									"description": "ID of the user to remove"
+								}
+							]
+						},
+						"description": "Removes a user from a specific class (Admin/Trainer)."
+					},
+					"response": []
+				},
+				{
+					"name": "Assign Quiz to Class",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quiz_id\": 3\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/classes/:id/quizzes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								":id",
+								"quizzes"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the class"
+								}
+							]
+						},
+						"description": "Assigns a quiz to a specific class (Admin/Trainer)."
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Quiz from Class",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/classes/:id/quizzes/:quiz_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"classes",
+								":id",
+								"quizzes",
+								":quiz_id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the class"
+								},
+								{
+									"key": "quiz_id",
+									"value": "3",
+									"description": "ID of the quiz to remove"
+								}
+							]
+						},
+						"description": "Removes a quiz assignment from a specific class (Admin/Trainer)."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing classes and their associations with users and quizzes."
+		},
+		{
+			"name": "Quizzes",
+			"item": [
+				{
+					"name": "List All Quizzes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/quizzes?category=&difficulty=&page=1&per_page=15",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quizzes"
+							],
+							"query": [
+								{
+									"key": "category",
+									"value": "",
+									"description": "Filter by category slug",
+									"disabled": true
+								},
+								{
+									"key": "difficulty",
+									"value": "",
+									"description": "Filter by difficulty (beginner, intermediate, advanced)",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "per_page",
+									"value": "15",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Lists quizzes with filtering. Access depends on user role."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quiz Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/quizzes/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quizzes",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the quiz"
+								}
+							]
+						},
+						"description": "Retrieves details for a specific quiz, including questions and answers."
+					},
+					"response": []
+				},
+				{
+					"name": "Create a New Quiz",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"JavaScript Frameworks\",\n  \"description\": \"Test your knowledge of modern JS frameworks\",\n  \"category_id\": 1,\n  \"difficulty\": \"intermediate\",\n  \"time_limit\": 30,\n  \"is_active\": true,\n  \"class_ids\": [1, 2]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/quizzes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quizzes"
+							]
+						},
+						"description": "Creates a new quiz (Trainer or Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update a Quiz",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Modern JavaScript Frameworks\",\n  \"time_limit\": 40,\n  \"class_ids\": [1, 2, 3]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/quizzes/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quizzes",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the quiz to update"
+								}
+							]
+						},
+						"description": "Updates an existing quiz (Trainer or Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Quiz",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/quizzes/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quizzes",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the quiz to delete"
+								}
+							]
+						},
+						"description": "Deletes a quiz (Trainer or Admin only)."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for creating, managing, and viewing quizzes."
+		},
+		{
+			"name": "Questions",
+			"item": [
+				{
+					"name": "List All Questions",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/questions?quiz_id=&type=&page=1&per_page=15",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"questions"
+							],
+							"query": [
+								{
+									"key": "quiz_id",
+									"value": "",
+									"description": "Filter by quiz ID",
+									"disabled": true
+								},
+								{
+									"key": "type",
+									"value": "",
+									"description": "Filter by question type",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "per_page",
+									"value": "15",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Lists all questions with optional filtering (Trainer/Admin)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Question Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/questions/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"questions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the question"
+								}
+							]
+						},
+						"description": "Retrieves details for a specific question, including its answers."
+					},
+					"response": []
+				},
+				{
+					"name": "Create a New Question",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quiz_id\": 1,\n  \"text\": \"Which of these is a component-based JavaScript framework?\",\n  \"type\": \"multiple-choice\",\n  \"points\": 5,\n  \"answers\": [\n    {\n      \"text\": \"React\",\n      \"is_correct\": true\n    },\n    {\n      \"text\": \"jQuery\",\n      \"is_correct\": false\n    },\n    {\n      \"text\": \"Lodash\",\n      \"is_correct\": false\n    },\n    {\n      \"text\": \"Express\",\n      \"is_correct\": false\n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/questions",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"questions"
+							]
+						},
+						"description": "Creates a new question along with its answers (Trainer or Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update a Question",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"Which of these is a modern component-based JavaScript framework?\",\n  \"points\": 10\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/questions/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"questions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the question to update"
+								}
+							]
+						},
+						"description": "Updates an existing question (Trainer or Admin only). Does not update answers here; use the Answers API for that."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Question",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/questions/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"questions",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the question to delete"
+								}
+							]
+						},
+						"description": "Deletes a question and its associated answers (Trainer or Admin only)."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing quiz questions."
+		},
+		{
+			"name": "Answers",
+			"item": [
+				{
+					"name": "List All Answers",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/answers?question_id=&is_correct=&page=1&per_page=15",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"answers"
+							],
+							"query": [
+								{
+									"key": "question_id",
+									"value": "",
+									"description": "Filter by question ID",
+									"disabled": true
+								},
+								{
+									"key": "is_correct",
+									"value": "",
+									"description": "Filter by correct status (true, false)",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "per_page",
+									"value": "15",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Lists all answers with optional filtering (Trainer/Admin)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Answer Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/answers/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"answers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the answer"
+								}
+							]
+						},
+						"description": "Retrieves details for a specific answer."
+					},
+					"response": []
+				},
+				{
+					"name": "Create a New Answer",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"question_id\": 1,\n  \"text\": \"Vue.js\",\n  \"is_correct\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/answers",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"answers"
+							]
+						},
+						"description": "Creates a new answer for a specific question (Trainer or Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Update an Answer",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"text\": \"Vue.js (a progressive framework)\",\n  \"is_correct\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/answers/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"answers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the answer to update"
+								}
+							]
+						},
+						"description": "Updates an existing answer (Trainer or Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete an Answer",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/answers/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"answers",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the answer to delete"
+								}
+							]
+						},
+						"description": "Deletes an answer (Trainer or Admin only)."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing answers associated with questions."
+		},
+		{
+			"name": "Quiz Results",
+			"item": [
+				{
+					"name": "List All Quiz Results",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/quiz-results?quiz_id=&user_id=&class_id=&start_date=&end_date=&page=1&per_page=15",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quiz-results"
+							],
+							"query": [
+								{
+									"key": "quiz_id",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "user_id",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "class_id",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "start_date",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "end_date",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "page",
+									"value": "1",
+									"disabled": true
+								},
+								{
+									"key": "per_page",
+									"value": "15",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Lists quiz results. Access and filtering depend on user role."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quiz Result Details",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/quiz-results/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quiz-results",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the quiz result"
+								}
+							]
+						},
+						"description": "Retrieves details for a specific quiz result, including submitted answers."
+					},
+					"response": []
+				},
+				{
+					"name": "Create a Quiz Result (Start a Quiz)",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"quiz_id\": 1\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/quiz-results",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quiz-results"
+							]
+						},
+						"description": "Creates a new quiz result record when a user starts taking a quiz."
+					},
+					"response": []
+				},
+				{
+					"name": "Update a Quiz Result (Submit Answers)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"completed\": true,\n  \"time_taken\": 1250, \n  \"user_answers\": [\n    {\n      \"question_id\": 1,\n      \"answer_id\": 1\n    },\n    {\n      \"question_id\": 2,\n      \"answer_id\": 5\n    },\n    {\n      \"question_id\": 3,\n      \"answer_id\": 9 \n    }\n  ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{base_url}}/quiz-results/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quiz-results",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the quiz result (obtained from 'Start a Quiz')"
+								}
+							]
+						},
+						"description": "Updates a quiz result, typically used to submit answers and mark the quiz as completed."
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a Quiz Result",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/quiz-results/:id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quiz-results",
+								":id"
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "1",
+									"description": "ID of the quiz result to delete"
+								}
+							]
+						},
+						"description": "Deletes a specific quiz result (Admin only)."
+					},
+					"response": []
+				},
+				{
+					"name": "Get User Quiz Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/quiz-results/statistics?user_id=&quiz_id=&category_id=&class_id=&start_date=&end_date=",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quiz-results",
+								"statistics"
+							],
+							"query": [
+								{
+									"key": "user_id",
+									"value": "",
+									"description": "User ID (for trainers/admins)",
+									"disabled": true
+								},
+								{
+									"key": "quiz_id",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "category_id",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "class_id",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "start_date",
+									"value": "",
+									"disabled": true
+								},
+								{
+									"key": "end_date",
+									"value": "",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Retrieves quiz performance statistics for a user."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Quiz Leaderboard",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/quiz-results/leaderboard/:quiz_id?class_id=&limit=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quiz-results",
+								"leaderboard",
+								":quiz_id"
+							],
+							"query": [
+								{
+									"key": "class_id",
+									"value": "",
+									"description": "Filter leaderboard by class ID",
+									"disabled": true
+								},
+								{
+									"key": "limit",
+									"value": "10",
+									"description": "Max number of users to return",
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "quiz_id",
+									"value": "1",
+									"description": "ID of the quiz"
+								}
+							]
+						},
+						"description": "Retrieves the leaderboard (top scores) for a specific quiz."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Class Quiz Results",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							},
+							{
+								"key": "Accept",
+								"value": "application/json"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/quiz-results/class/:class_id/quiz/:quiz_id",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"quiz-results",
+								"class",
+								":class_id",
+								"quiz",
+								":quiz_id"
+							],
+							"variable": [
+								{
+									"key": "class_id",
+									"value": "1",
+									"description": "ID of the class"
+								},
+								{
+									"key": "quiz_id",
+									"value": "1",
+									"description": "ID of the quiz"
+								}
+							]
+						},
+						"description": "Retrieves all results for a specific quiz within a specific class (Trainer/Admin)."
+					},
+					"response": []
+				}
+			],
+			"description": "Endpoints for managing and viewing quiz attempts and results."
+		}
+	]
+}
